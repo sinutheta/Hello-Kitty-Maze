@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Maze Game</title>
+  <title>Hello Kitty Maze Game</title>
 
   <style>
     body {
@@ -21,11 +21,13 @@
       font-family: Arial, sans-serif;
     }
 
-    .game-container {
-      text-align: center;
-      background: none;
-      padding: 0;
-    }
+ .game-container {
+  text-align: center;
+  background-color: transparent; 
+  padding: 0;                    
+  border-radius: 0;             
+}
+
 
     h1 {
       margin-bottom: 6px;
@@ -91,7 +93,7 @@
     const COLS = 31;
     const CELL_SIZE = 20;
     const TOTAL_TIME = 45;
-    const SPRITE_SCALE = 1.8;
+    const SPRITE_SCALE = 1.9;
 
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
