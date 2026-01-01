@@ -1,292 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Hello Kitty Maze Game</title>
+<meta charset="UTF-8">
+<title>Hello Kitty Maze Game</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-  <style>
-    :root {
-      color-scheme: light;
-    }
+<style>
+:root { color-scheme: light; }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f5f5dc;
-      font-family: Arial, sans-serif;
-    }
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-    .game-container {
-      text-align: center;
-      background-color: transparent;
-      width: 100%;
-      max-width: 700px;
-      padding: 8px;
-    }
+  background-image: url("background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 
-    h1 {
-      margin: 4px 0;
-      font-size: 22px;
-    }
+  font-family: Arial, sans-serif;
+}
 
-    #info {
-      font-size: 14px;
-      margin-bottom: 6px;
-    }
+.game-container {
+  text-align: center;
+  width: 100%;
+  max-width: 720px;
+  padding: 8px;
+}
 
-    canvas {
-      border: 2px solid #333;
-      background-color: #f5f5dc;
-      display: block;
-      margin: 0 auto;
-      width: 100%;
-      max-width: 620px;
-      aspect-ratio: 31 / 21;
-      height: auto;
-    }
+h1 {
+  margin: 4px 0;
+  font-size: 22px;
+}
 
-    #message {
-      margin-top: 6px;
-      font-size: 16px;
-      min-height: 22px;
-    }
+#info {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #000;
+}
 
-    #restart {
-      margin-top: 6px;
-      padding: 8px 16px;
-      border-radius: 16px;
-      border: none;
-      background-color: #f27e8b;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-    }
+canvas {
+  border: 2px solid #333;
+  background-color: #f5f5dc;
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 620px;
+  aspect-ratio: 31 / 21;
+  height: auto;
+}
 
-    .mobile-controls {
-      margin-top: 12px;
-      display: grid;
-      grid-template-columns: 60px 60px 60px;
-      grid-template-rows: 60px 60px;
-      gap: 10px;
-      justify-content: center;
-    }
+#message {
+  margin-top: 6px;
+  font-size: 16px;
+  min-height: 22px;
+}
 
-    .btn {
-      background-color: #f27e8b;
-      border-radius: 14px;
-      border: none;
-      position: relative;
-      cursor: pointer;
-    }
+#restart {
+  margin-top: 6px;
+  padding: 8px 16px;
+  border-radius: 16px;
+  border: none;
+  background-color: #f27e8b;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
 
-    .btn:active {
-      transform: scale(0.95);
-    }
+.mobile-controls {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 60px 60px 60px;
+  grid-template-rows: 60px 60px;
+  gap: 10px;
+  justify-content: center;
+}
 
-    .arrow {
-      width: 0;
-      height: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
+.btn {
+  background-color: #f27e8b;
+  border-radius: 14px;
+  border: none;
+  position: relative;
+  touch-action: none;
+}
 
-    .up .arrow {
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-bottom: 18px solid white;
-    }
+.btn:active {
+  transform: scale(0.95);
+}
 
-    .down .arrow {
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-top: 18px solid white;
-    }
+.arrow {
+  width: 0;
+  height: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 
-    .left .arrow {
-      border-top: 10px solid transparent;
-      border-bottom: 10px solid transparent;
-      border-right: 18px solid white;
-    }
+.up .arrow {
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 18px solid white;
+}
 
-    .right .arrow {
-      border-top: 10px solid transparent;
-      border-bottom: 10px solid transparent;
-      border-left: 18px solid white;
-    }
+.down .arrow {
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 18px solid white;
+}
 
-    .up    { grid-column: 2; }
-    .left  { grid-column: 1; grid-row: 2; }
-    .down  { grid-column: 2; grid-row: 2; }
-    .right { grid-column: 3; grid-row: 2; }
+.left .arrow {
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 18px solid white;
+}
 
-    @media (min-width: 900px) {
-      .mobile-controls {
-        display: none;
-      }
-    }
-  </style>
+.right .arrow {
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 18px solid white;
+}
+
+.up    { grid-column: 2; }
+.left  { grid-column: 1; grid-row: 2; }
+.down  { grid-column: 2; grid-row: 2; }
+.right { grid-column: 3; grid-row: 2; }
+
+@media (min-width: 900px) {
+  .mobile-controls { display: none; }
+}
+</style>
 </head>
 
 <body>
-  <div class="game-container">
-    <h1>Maze Game</h1>
+<div class="game-container">
+  <h1>Maze Game</h1>
 
-    <div id="info">
-      Time left: <span id="timer">45</span>s
-    </div>
-
-    <canvas id="mazeCanvas" width="620" height="420"></canvas>
-
-    <div id="message"></div>
-
-    <button id="restart">Restart</button>
-
-    <div class="mobile-controls">
-      <button class="btn up" onclick="tryMove(-1,0)"><div class="arrow"></div></button>
-      <button class="btn left" onclick="tryMove(0,-1)"><div class="arrow"></div></button>
-      <button class="btn down" onclick="tryMove(1,0)"><div class="arrow"></div></button>
-      <button class="btn right" onclick="tryMove(0,1)"><div class="arrow"></div></button>
-    </div>
+  <div id="info">
+    Time left: <span id="timer">45</span>s —
+    use arrows/buttons to help hello kitty reach the strawberries :3
   </div>
 
+  <canvas id="mazeCanvas" width="620" height="420"></canvas>
+
+  <div id="message"></div>
+
+  <button id="restart">Restart</button>
+
+  <div class="mobile-controls">
+    <button class="btn up"
+      ontouchstart="startHold(-1,0)" ontouchend="stopHold()" ontouchcancel="stopHold()">
+      <div class="arrow"></div>
+    </button>
+
+    <button class="btn left"
+      ontouchstart="startHold(0,-1)" ontouchend="stopHold()" ontouchcancel="stopHold()">
+      <div class="arrow"></div>
+    </button>
+
+    <button class="btn down"
+      ontouchstart="startHold(1,0)" ontouchend="stopHold()" ontouchcancel="stopHold()">
+      <div class="arrow"></div>
+    </button>
+
+    <button class="btn right"
+      ontouchstart="startHold(0,1)" ontouchend="stopHold()" ontouchcancel="stopHold()">
+      <div class="arrow"></div>
+    </button>
+  </div>
+</div>
+
 <script>
-  const ROWS = 21;
-  const COLS = 31;
-  const CELL_SIZE = 20;
-  const TOTAL_TIME = 45;
-  const SPRITE_SCALE = 2.5;
+const ROWS = 21;
+const COLS = 31;
+const CELL = 20;
+const TOTAL_TIME = 45;
+const SPRITE_SCALE = 2.5;
 
-  const canvas = document.getElementById("mazeCanvas");
-  const ctx = canvas.getContext("2d");
-  const timerSpan = document.getElementById("timer");
-  const messageDiv = document.getElementById("message");
-  const restartBtn = document.getElementById("restart");
+const canvas = document.getElementById("mazeCanvas");
+const ctx = canvas.getContext("2d");
+const timerSpan = document.getElementById("timer");
+const messageDiv = document.getElementById("message");
+const restartBtn = document.getElementById("restart");
 
-  let maze = [];
-  let player = { r: 1, c: 1 };
-  let goal = { r: ROWS - 2, c: COLS - 2 };
-  let timeLeft = TOTAL_TIME;
-  let gameOver = false;
-  let timerId = null;
+let maze = [];
+let player = { r: 1, c: 1 };
+let goal = { r: ROWS - 2, c: COLS - 2 };
+let timeLeft = TOTAL_TIME;
+let gameOver = false;
+let timerId = null;
 
-  const playerImg = new Image();
-  playerImg.src = "hellokitty_transparent.png";
+let holdInterval = null;
+let holdDir = null;
 
-  const goalImg = new Image();
-  goalImg.src = "strawberry_transparent.png";
+const playerImg = new Image();
+playerImg.src = "hellokitty_transparent.png";
 
-  function generateMaze(rows, cols) {
-    const m = Array.from({ length: rows }, () => Array(cols).fill(1));
-    for (let r = 1; r < rows - 1; r += 2)
-      for (let c = 1; c < cols - 1; c += 2)
-        m[r][c] = 0;
+const goalImg = new Image();
+goalImg.src = "strawberry_transparent.png";
 
-    const dirs = [[-2,0],[2,0],[0,-2],[0,2]];
-    const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-    const stack = [[1,1]];
-    visited[1][1] = true;
+function generateMaze(rows, cols) {
+  const m = Array.from({ length: rows }, () => Array(cols).fill(1));
+  for (let r = 1; r < rows - 1; r += 2)
+    for (let c = 1; c < cols - 1; c += 2)
+      m[r][c] = 0;
 
-    while (stack.length) {
-      const [r,c] = stack.at(-1);
-      const n = [];
-      for (const [dr,dc] of dirs) {
-        const nr=r+dr, nc=c+dc;
-        if (nr>0 && nr<rows-1 && nc>0 && nc<cols-1 && !visited[nr][nc])
-          n.push([nr,nc]);
-      }
-      if (n.length) {
-        const [nr,nc] = n[Math.floor(Math.random()*n.length)];
-        m[(r+nr)/2][(c+nc)/2] = 0;
-        visited[nr][nc] = true;
-        stack.push([nr,nc]);
-      } else stack.pop();
+  const dirs = [[-2,0],[2,0],[0,-2],[0,2]];
+  const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+  const stack = [[1,1]];
+  visited[1][1] = true;
+
+  while (stack.length) {
+    const [r,c] = stack.at(-1);
+    const n = [];
+    for (const [dr,dc] of dirs) {
+      const nr=r+dr, nc=c+dc;
+      if (nr>0 && nr<rows-1 && nc>0 && nc<cols-1 && !visited[nr][nc])
+        n.push([nr,nc]);
     }
-    return m;
+    if (n.length) {
+      const [nr,nc] = n[Math.floor(Math.random()*n.length)];
+      m[(r+nr)/2][(c+nc)/2] = 0;
+      visited[nr][nc] = true;
+      stack.push([nr,nc]);
+    } else stack.pop();
   }
+  return m;
+}
 
-  function drawCircle(img,x,y,size){
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);
-    ctx.clip();
-    ctx.drawImage(img,x,y,size,size);
-    ctx.restore();
-  }
+function drawCircle(img,x,y,size){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);
+  ctx.clip();
+  ctx.drawImage(img,x,y,size,size);
+  ctx.restore();
+}
 
-  function drawMaze() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+function drawMaze() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    for (let r=0;r<ROWS;r++)
-      for (let c=0;c<COLS;c++) {
-        ctx.fillStyle = maze[r][c] ? "#f27e8b" : "#fcd8dc";
-        ctx.fillRect(c*CELL_SIZE,r*CELL_SIZE,CELL_SIZE,CELL_SIZE);
-      }
+  for (let r=0;r<ROWS;r++)
+    for (let c=0;c<COLS;c++) {
+      ctx.fillStyle = maze[r][c] ? "#f27e8b" : "#fcd8dc";
+      ctx.fillRect(c*CELL,r*CELL,CELL,CELL);
+    }
 
-    const gSize = CELL_SIZE * SPRITE_SCALE;
-    drawCircle(goalImg,goal.c*CELL_SIZE-(gSize-CELL_SIZE)/2,goal.r*CELL_SIZE-(gSize-CELL_SIZE)/2,gSize);
+  const gSize = CELL * SPRITE_SCALE;
+  drawCircle(goalImg,goal.c*CELL-(gSize-CELL)/2,goal.r*CELL-(gSize-CELL)/2,gSize);
 
-    const pSize = CELL_SIZE * SPRITE_SCALE;
-    drawCircle(playerImg,player.c*CELL_SIZE-(pSize-CELL_SIZE)/2,player.r*CELL_SIZE-(pSize-CELL_SIZE)/2,pSize);
-  }
+  const pSize = CELL * SPRITE_SCALE;
+  drawCircle(playerImg,player.c*CELL-(pSize-CELL)/2,player.r*CELL-(pSize-CELL)/2,pSize);
+}
 
-  function startTimer() {
-    clearInterval(timerId);
-    timerSpan.textContent = timeLeft;
-    timerId = setInterval(()=>{
-      if (gameOver) return;
-      timeLeft--;
-      timerSpan.textContent = timeLeft;
-      if (timeLeft<=0){
-        gameOver=true;
-        messageDiv.textContent="Time up! You lost :(";
-        messageDiv.style.color="red";
-        clearInterval(timerId);
-      }
-    },1000);
-  }
-
-  function tryMove(dr,dc){
+function startTimer() {
+  clearInterval(timerId);
+  timerSpan.textContent = timeLeft;
+  timerId = setInterval(()=>{
     if (gameOver) return;
-    const nr=player.r+dr,nc=player.c+dc;
-    if (maze[nr][nc]) return;
-    player.r=nr;
-    player.c=nc;
-    drawMaze();
-    if (nr===goal.r && nc===goal.c){
+    timeLeft--;
+    timerSpan.textContent = timeLeft;
+    if (timeLeft<=0){
       gameOver=true;
-      messageDiv.textContent="You Won :3";
-      messageDiv.style.color="gold";
+      messageDiv.textContent="Time up! You lost :(";
+      messageDiv.style.color="red";
       clearInterval(timerId);
     }
+  },1000);
+}
+
+function tryMove(dr,dc){
+  if (gameOver) return;
+  const nr=player.r+dr,nc=player.c+dc;
+  if (maze[nr][nc]) return;
+  player.r=nr;
+  player.c=nc;
+  drawMaze();
+  if (nr===goal.r && nc===goal.c){
+    gameOver=true;
+    messageDiv.textContent="You Won :3";
+    messageDiv.style.color="gold";
+    clearInterval(timerId);
   }
+}
 
-  document.addEventListener("keydown",e=>{
-    if(e.key==="ArrowUp")tryMove(-1,0);
-    if(e.key==="ArrowDown")tryMove(1,0);
-    if(e.key==="ArrowLeft")tryMove(0,-1);
-    if(e.key==="ArrowRight")tryMove(0,1);
-  });
+function startHold(dr,dc){
+  if (holdInterval) return;
+  holdDir = [dr,dc];
+  tryMove(dr,dc);
+  holdInterval = setInterval(()=>tryMove(holdDir[0],holdDir[1]),120);
+}
 
-  function init(){
-    maze=generateMaze(ROWS,COLS);
-    player={r:1,c:1};
-    goal={r:ROWS-2,c:COLS-2};
-    timeLeft=TOTAL_TIME;
-    gameOver=false;
-    messageDiv.textContent="";
-    drawMaze();
-    startTimer();
-  }
+function stopHold(){
+  clearInterval(holdInterval);
+  holdInterval = null;
+}
 
-  restartBtn.onclick=init;
-  init();
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowUp")tryMove(-1,0);
+  if(e.key==="ArrowDown")tryMove(1,0);
+  if(e.key==="ArrowLeft")tryMove(0,-1);
+  if(e.key==="ArrowRight")tryMove(0,1);
+});
+
+function init(){
+  maze=generateMaze(ROWS,COLS);
+  player={r:1,c:1};
+  goal={r:ROWS-2,c:COLS-2};
+  timeLeft=TOTAL_TIME;
+  gameOver=false;
+  messageDiv.textContent="";
+  drawMaze();
+  startTimer();
+}
+
+restartBtn.onclick=init;
+init();
 </script>
 </body>
 </html>
+
