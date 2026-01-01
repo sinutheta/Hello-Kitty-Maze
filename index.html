@@ -4,30 +4,26 @@
   <meta charset="UTF-8" />
   <title>Hello Kitty Maze Game</title>
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-
-
+      align-items: center;
       background-image: url("background.jpg");
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-
       font-family: Arial, sans-serif;
     }
 
- .game-container {
-  text-align: center;
-  background-color: transparent; 
-  padding: 0;                    
-  border-radius: 0;             
-}
-
+    .game-container {
+      text-align: center;
+      background-color: transparent;
+    }
 
     h1 {
       margin-bottom: 6px;
@@ -36,10 +32,6 @@
     #info {
       margin-bottom: 8px;
       font-size: 16px;
-    }
-
-    #timer {
-      font-weight: bold;
     }
 
     canvas {
@@ -66,8 +58,31 @@
       font-weight: bold;
     }
 
-    #restart:hover {
-      background-color: #e56775;
+    .mobile-controls {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .mobile-controls button {
+      width: 60px;
+      height: 60px;
+      margin: 5px;
+      font-size: 24px;
+      border-radius: 12px;
+      border: none;
+      background-color: #f27e8b;
+      color: white;
+      cursor: pointer;
+    }
+
+    .mobile-controls button:active {
+      transform: scale(0.95);
+    }
+
+    @media (min-width: 900px) {
+      .mobile-controls {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -78,7 +93,7 @@
 
     <div id="info">
       Time left: <span id="timer">45</span>s |
-      Use arrow keys to move Hello Kitty to the strawberry
+      Use arrow keys or buttons
     </div>
 
     <canvas id="mazeCanvas" width="620" height="420"></canvas>
@@ -86,162 +101,146 @@
     <div id="message"></div>
 
     <button id="restart">Restart</button>
+
+    <div class="mobile-controls">
+      <button onclick="tryMove(-1,0)">⬆️</button><br>
+      <button onclick="tryMove(0,-1)">⬅️</button>
+      <button onclick="tryMove(1,0)">⬇️</button>
+      <button onclick="tryMove(0,1)">➡️</button>
+    </div>
   </div>
 
-  <script>
-    const ROWS = 21;
-    const COLS = 31;
-    const CELL_SIZE = 20;
-    const TOTAL_TIME = 45;
-    const SPRITE_SCALE = 3;
+<script>
+  const ROWS = 21;
+  const COLS = 31;
+  const CELL_SIZE = 20;
+  const TOTAL_TIME = 45;
+  const SPRITE_SCALE = 3;
 
-    const canvas = document.getElementById("mazeCanvas");
-    const ctx = canvas.getContext("2d");
-    const timerSpan = document.getElementById("timer");
-    const messageDiv = document.getElementById("message");
-    const restartBtn = document.getElementById("restart");
+  const canvas = document.getElementById("mazeCanvas");
+  const ctx = canvas.getContext("2d");
+  const timerSpan = document.getElementById("timer");
+  const messageDiv = document.getElementById("message");
+  const restartBtn = document.getElementById("restart");
 
-    let maze = [];
-    let player = { r: 1, c: 1 };
-    let goal = { r: ROWS - 2, c: COLS - 2 };
-    let timeLeft = TOTAL_TIME;
-    let gameOver = false;
-    let timerId = null;
+  let maze = [];
+  let player = { r: 1, c: 1 };
+  let goal = { r: ROWS - 2, c: COLS - 2 };
+  let timeLeft = TOTAL_TIME;
+  let gameOver = false;
+  let timerId = null;
 
-    const playerImg = new Image();
-    playerImg.src = "hellokitty_transparent.png";
+  const playerImg = new Image();
+  playerImg.src = "hellokitty_transparent.png";
 
-    const goalImg = new Image();
-    goalImg.src = "strawberry_transparent.png";
+  const goalImg = new Image();
+  goalImg.src = "strawberry_transparent.png";
 
-    function generateMaze(rows, cols) {
-      const m = Array.from({ length: rows }, () => Array(cols).fill(1));
+  function generateMaze(rows, cols) {
+    const m = Array.from({ length: rows }, () => Array(cols).fill(1));
+    for (let r = 1; r < rows - 1; r += 2)
+      for (let c = 1; c < cols - 1; c += 2)
+        m[r][c] = 0;
 
-      for (let r = 1; r < rows - 1; r += 2)
-        for (let c = 1; c < cols - 1; c += 2)
-          m[r][c] = 0;
+    const dirs = [[-2,0],[2,0],[0,-2],[0,2]];
+    const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+    const stack = [[1,1]];
+    visited[1][1] = true;
 
-      const dirs = [[-2,0],[2,0],[0,-2],[0,2]];
-      const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-      const stack = [[1,1]];
-      visited[1][1] = true;
+    while (stack.length) {
+      const [r,c] = stack.at(-1);
+      const neighbors = [];
+      for (const [dr,dc] of dirs) {
+        const nr=r+dr, nc=c+dc;
+        if (nr>0 && nr<rows-1 && nc>0 && nc<cols-1 && !visited[nr][nc])
+          neighbors.push([nr,nc]);
+      }
+      if (neighbors.length) {
+        const [nr,nc] = neighbors[Math.floor(Math.random()*neighbors.length)];
+        m[(r+nr)/2][(c+nc)/2] = 0;
+        visited[nr][nc] = true;
+        stack.push([nr,nc]);
+      } else stack.pop();
+    }
+    return m;
+  }
 
-      while (stack.length) {
-        const [r,c] = stack.at(-1);
-        const neighbors = [];
+  function drawCircle(img,x,y,size){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);
+    ctx.clip();
+    ctx.drawImage(img,x,y,size,size);
+    ctx.restore();
+  }
 
-        for (const [dr,dc] of dirs) {
-          const nr=r+dr, nc=c+dc;
-          if (nr>0 && nr<rows-1 && nc>0 && nc<cols-1 && !visited[nr][nc])
-            neighbors.push([nr,nc]);
-        }
+  function drawMaze() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-        if (neighbors.length) {
-          const [nr,nc] = neighbors[Math.floor(Math.random()*neighbors.length)];
-          m[(r+nr)/2][(c+nc)/2] = 0;
-          visited[nr][nc] = true;
-          stack.push([nr,nc]);
-        } else stack.pop();
+    for (let r=0;r<ROWS;r++)
+      for (let c=0;c<COLS;c++) {
+        ctx.fillStyle = maze[r][c] ? "#f27e8b" : "#fcd8dc";
+        ctx.fillRect(c*CELL_SIZE,r*CELL_SIZE,CELL_SIZE,CELL_SIZE);
       }
 
-      return m;
-    }
+    const gSize = CELL_SIZE * SPRITE_SCALE;
+    drawCircle(goalImg,goal.c*CELL_SIZE-(gSize-CELL_SIZE)/2,goal.r*CELL_SIZE-(gSize-CELL_SIZE)/2,gSize);
 
-    function drawCircularImage(img, x, y, size) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(img, x, y, size, size);
-      ctx.restore();
-    }
+    const pSize = CELL_SIZE * SPRITE_SCALE;
+    drawCircle(playerImg,player.c*CELL_SIZE-(pSize-CELL_SIZE)/2,player.r*CELL_SIZE-(pSize-CELL_SIZE)/2,pSize);
+  }
 
-    function drawMaze() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-
-      for (let r=0;r<ROWS;r++) {
-        for (let c=0;c<COLS;c++) {
-          ctx.fillStyle = maze[r][c] ? "#f27e8b" : "#fcd8dc";
-          ctx.fillRect(c*CELL_SIZE, r*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        }
-      }
-
-      const gSize = CELL_SIZE * SPRITE_SCALE;
-      drawCircularImage(
-        goalImg,
-        goal.c*CELL_SIZE - (gSize - CELL_SIZE)/2,
-        goal.r*CELL_SIZE - (gSize - CELL_SIZE)/2,
-        gSize
-      );
-
-      const pSize = CELL_SIZE * SPRITE_SCALE;
-      drawCircularImage(
-        playerImg,
-        player.c*CELL_SIZE - (pSize - CELL_SIZE)/2,
-        player.r*CELL_SIZE - (pSize - CELL_SIZE)/2,
-        pSize
-      );
-    }
-
-    function startTimer() {
-      timerSpan.textContent = timeLeft;
-      timerId = setInterval(() => {
-        if (gameOver) return;
-        timeLeft--;
-        timerSpan.textContent = timeLeft;
-
-        if (timeLeft <= 0) {
-          gameOver = true;
-          messageDiv.textContent = "Time up! You lost :(";
-          messageDiv.style.color = "red";
-          clearInterval(timerId);
-        }
-      }, 1000);
-    }
-
-    function tryMove(dr, dc) {
+  function startTimer() {
+    clearInterval(timerId);
+    timerSpan.textContent = timeLeft;
+    timerId = setInterval(()=>{
       if (gameOver) return;
-      const nr = player.r + dr;
-      const nc = player.c + dc;
-      if (maze[nr][nc]) return;
-
-      player.r = nr;
-      player.c = nc;
-      drawMaze();
-
-      if (player.r === goal.r && player.c === goal.c) {
-        gameOver = true;
-        messageDiv.textContent = "You Won :3";
-        messageDiv.style.color = "gold";
+      timeLeft--;
+      timerSpan.textContent = timeLeft;
+      if (timeLeft<=0){
+        gameOver=true;
+        messageDiv.textContent="Time up! You lost :(";
+        messageDiv.style.color="red";
         clearInterval(timerId);
       }
-    }
+    },1000);
+  }
 
-    document.addEventListener("keydown", e => {
-      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key))
-        e.preventDefault();
-
-      if (e.key==="ArrowUp") tryMove(-1,0);
-      if (e.key==="ArrowDown") tryMove(1,0);
-      if (e.key==="ArrowLeft") tryMove(0,-1);
-      if (e.key==="ArrowRight") tryMove(0,1);
-    });
-
-    function init() {
-      maze = generateMaze(ROWS, COLS);
-      player = { r:1, c:1 };
-      goal = { r:ROWS-2, c:COLS-2 };
-      timeLeft = TOTAL_TIME;
-      gameOver = false;
-      messageDiv.textContent = "";
+  function tryMove(dr,dc){
+    if (gameOver) return;
+    const nr=player.r+dr,nc=player.c+dc;
+    if (maze[nr][nc]) return;
+    player.r=nr;
+    player.c=nc;
+    drawMaze();
+    if (nr===goal.r && nc===goal.c){
+      gameOver=true;
+      messageDiv.textContent="You Won :3";
+      messageDiv.style.color="gold";
       clearInterval(timerId);
-      drawMaze();
-      startTimer();
     }
+  }
 
-    restartBtn.addEventListener("click", init);
-    init();
-  </script>
+  document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowUp")tryMove(-1,0);
+    if(e.key==="ArrowDown")tryMove(1,0);
+    if(e.key==="ArrowLeft")tryMove(0,-1);
+    if(e.key==="ArrowRight")tryMove(0,1);
+  });
+
+  function init(){
+    maze=generateMaze(ROWS,COLS);
+    player={r:1,c:1};
+    goal={r:ROWS-2,c:COLS-2};
+    timeLeft=TOTAL_TIME;
+    gameOver=false;
+    messageDiv.textContent="";
+    drawMaze();
+    startTimer();
+  }
+
+  restartBtn.onclick=init;
+  init();
+</script>
 </body>
 </html>
