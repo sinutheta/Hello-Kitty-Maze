@@ -4,80 +4,127 @@
   <meta charset="UTF-8" />
   <title>Hello Kitty Maze Game</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 
   <style>
+    :root {
+      color-scheme: light;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-image: url("background.jpg");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+      background-color: #f5f5dc;
       font-family: Arial, sans-serif;
     }
 
     .game-container {
       text-align: center;
       background-color: transparent;
+      width: 100%;
+      max-width: 700px;
+      padding: 8px;
     }
 
     h1 {
-      margin-bottom: 6px;
+      margin: 4px 0;
+      font-size: 22px;
     }
 
     #info {
-      margin-bottom: 8px;
-      font-size: 16px;
+      font-size: 14px;
+      margin-bottom: 6px;
     }
 
     canvas {
       border: 2px solid #333;
+      background-color: #f5f5dc;
       display: block;
       margin: 0 auto;
+      width: 100%;
+      max-width: 620px;
+      aspect-ratio: 31 / 21;
+      height: auto;
     }
 
     #message {
-      margin-top: 8px;
-      font-size: 18px;
-      min-height: 24px;
+      margin-top: 6px;
+      font-size: 16px;
+      min-height: 22px;
     }
 
     #restart {
-      margin-top: 10px;
-      padding: 10px 18px;
-      cursor: pointer;
-      border-radius: 18px;
+      margin-top: 6px;
+      padding: 8px 16px;
+      border-radius: 16px;
       border: none;
       background-color: #f27e8b;
       color: white;
-      font-size: 16px;
-      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
     }
 
     .mobile-controls {
-      margin-top: 15px;
-      text-align: center;
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 60px 60px 60px;
+      grid-template-rows: 60px 60px;
+      gap: 10px;
+      justify-content: center;
     }
 
-    .mobile-controls button {
-      width: 60px;
-      height: 60px;
-      margin: 5px;
-      font-size: 24px;
-      border-radius: 12px;
-      border: none;
+    .btn {
       background-color: #f27e8b;
-      color: white;
+      border-radius: 14px;
+      border: none;
+      position: relative;
       cursor: pointer;
     }
 
-    .mobile-controls button:active {
+    .btn:active {
       transform: scale(0.95);
     }
+
+    .arrow {
+      width: 0;
+      height: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .up .arrow {
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 18px solid white;
+    }
+
+    .down .arrow {
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 18px solid white;
+    }
+
+    .left .arrow {
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-right: 18px solid white;
+    }
+
+    .right .arrow {
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 18px solid white;
+    }
+
+    .up    { grid-column: 2; }
+    .left  { grid-column: 1; grid-row: 2; }
+    .down  { grid-column: 2; grid-row: 2; }
+    .right { grid-column: 3; grid-row: 2; }
 
     @media (min-width: 900px) {
       .mobile-controls {
@@ -92,8 +139,7 @@
     <h1>Maze Game</h1>
 
     <div id="info">
-      Time left: <span id="timer">45</span>s |
-      Use arrow keys or buttons
+      Time left: <span id="timer">45</span>s
     </div>
 
     <canvas id="mazeCanvas" width="620" height="420"></canvas>
@@ -103,10 +149,10 @@
     <button id="restart">Restart</button>
 
     <div class="mobile-controls">
-      <button onclick="tryMove(-1,0)">⬆️</button><br>
-      <button onclick="tryMove(0,-1)">⬅️</button>
-      <button onclick="tryMove(1,0)">⬇️</button>
-      <button onclick="tryMove(0,1)">➡️</button>
+      <button class="btn up" onclick="tryMove(-1,0)"><div class="arrow"></div></button>
+      <button class="btn left" onclick="tryMove(0,-1)"><div class="arrow"></div></button>
+      <button class="btn down" onclick="tryMove(1,0)"><div class="arrow"></div></button>
+      <button class="btn right" onclick="tryMove(0,1)"><div class="arrow"></div></button>
     </div>
   </div>
 
@@ -115,7 +161,7 @@
   const COLS = 31;
   const CELL_SIZE = 20;
   const TOTAL_TIME = 45;
-  const SPRITE_SCALE = 3;
+  const SPRITE_SCALE = 2.5;
 
   const canvas = document.getElementById("mazeCanvas");
   const ctx = canvas.getContext("2d");
@@ -149,14 +195,14 @@
 
     while (stack.length) {
       const [r,c] = stack.at(-1);
-      const neighbors = [];
+      const n = [];
       for (const [dr,dc] of dirs) {
         const nr=r+dr, nc=c+dc;
         if (nr>0 && nr<rows-1 && nc>0 && nc<cols-1 && !visited[nr][nc])
-          neighbors.push([nr,nc]);
+          n.push([nr,nc]);
       }
-      if (neighbors.length) {
-        const [nr,nc] = neighbors[Math.floor(Math.random()*neighbors.length)];
+      if (n.length) {
+        const [nr,nc] = n[Math.floor(Math.random()*n.length)];
         m[(r+nr)/2][(c+nc)/2] = 0;
         visited[nr][nc] = true;
         stack.push([nr,nc]);
